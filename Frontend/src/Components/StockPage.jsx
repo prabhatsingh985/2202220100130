@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { fetchStocks, fetchStockHistory } from './api';
 import StockChart from './StockChart';
+import { useNavigate } from 'react-router-dom';
 
 export default function StockPage() {
   const [ticker, setTicker] = useState('NVDA');
   const [minutes, setMinutes] = useState(50);
   const [data, setData] = useState([]);
   const [average, setAverage] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getData = async () => {
@@ -118,6 +120,20 @@ export default function StockPage() {
       </label>
 
       <StockChart data={data} average={average} />
+      <button
+        onClick={() => navigate('/correlation')}
+        style={{
+          marginTop: '20px',
+          padding: '10px 20px',
+          fontSize: '16px',
+          cursor: 'pointer',
+          borderRadius: '5px',
+          backgroundColor: '#007acc',
+          color: 'white',
+          border: 'none',
+        }}
+      >Go to Correlation Page
+      </button>
     </div>
   );
 }
