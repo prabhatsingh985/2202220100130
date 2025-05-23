@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import StockPage from './Components/StockPage';
-import CorrelationPage from './Components/CorrelationPage';
+import CorrelationPage from './Components/Correlation';
 import { AppBar, Toolbar, Typography, Button } from '@mui/material';
 
 export default function App() {
