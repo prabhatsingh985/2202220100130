@@ -1,80 +1,53 @@
 import React, { useEffect, useState } from 'react';
-import { MenuItem, Select, Typography, CircularProgress, Box } from '@mui/material';
-import { Line } from 'react-chartjs-2';
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Tooltip,
-    Legend,
-} from 'chart.js';
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
+import { fetchStocks, fetchStockHistory } from './api';
+import StockChart from '../Components/StockChart';
 
 export default function StockPage() {
-    const [ticker, setTicker] = useState('AAPL');
-    const [minutes, setMinutes] = useState(30);
-    const [data, setData] = useState(null);
+  const [ticker, setTicker] = useState('NVDA');
+  const [minutes, setMinutes] = useState(50);
+  const [data, setData] = useState([]);
+  const [average, setAverage] = useState(0);
 
-    useEffect(() => {
-        fetch(
-            `http://20.244.56.144/evaluation-service/stocks/${ticker}?minutes=${minutes}&aggregation=average`,
-            {
-                headers: {
-                    Authorization: 'Bearer ',
-                },
-            }
-        )
-            .then((res) => res.json())
-            .then((json) => setData(json))
-            .catch((err) => console.error('Error fetching stock data:', err));
-    }, [ticker, minutes]);
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const json = await fetchStockHistory(ticker, minutes);
+        const history = json?.priceHistory ?? (json?.stock ? [json.stock] : []);
+        const prices = history.map(p => p?.price).filter(price => typeof price === 'number');
 
+        setData(history);
+        setAverage(prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0);
+      } catch (error) {
+        console.error('Failed to fetch stock history:', error);
+        setData([]);
+        setAverage(0);
+      }
+    };
 
-    const options = [5, 15, 30, 60, 120];
+    getData();
+  }, [ticker, minutes]);
 
-    return (
-        <Box p={4}>
-            <Typography variant="h4" gutterBottom>
-                Stock Price for {ticker}
-            </Typography>
-            <Select value={minutes} onChange={(e) => setMinutes(e.target.value)}>
-                {options.map((m) => (
-                    <MenuItem key={m} value={m}>
-                        Last {m} minutes
-                    </MenuItem>
-                ))}
-            </Select>
-            {data ? (
-                <>
-                    <Typography variant="h6" color="secondary">
-                        Average: {data.averageStockPrice.toFixed(2)}
-                    </Typography>
-                    <Line
-                        data={{
-                            labels: data.priceHistory.map((p) => new Date(p.lastUpdatedAt).toLocaleTimeString()),
-                            datasets: [
-                                {
-                                    label: 'Price',
-                                    data: data.priceHistory.map((p) => p.price),
-                                    borderColor: 'blue',
-                                    fill: false,
-                                },
-                                {
-                                    label: 'Average Price',
-                                    data: data.priceHistory.map(() => data.averageStockPrice),
-                                    borderColor: 'red',
-                                    borderDash: [10, 5],
-                                    fill: false,
-                                },
-                            ],
-                        }}
-                    />
-                </>
-            ) : (
-                <CircularProgress />
-            )}
-        </Box>
-    );
+  return (
+    <div>
+      <h2>Stock Page</h2>
+      <label>
+        Select Ticker:
+        <select value={ticker} onChange={e => setTicker(e.target.value)}>
+          <option value="NVDA">NVDA</option>
+          <option value="PYPL">PYPL</option>
+          <option value="AAPL">AAPL</option>
+        </select>
+      </label>
+      <label style={{ marginLeft: '1rem' }}>
+        Minutes:
+        <input
+          type="number"
+          value={minutes}
+          min="1"
+          onChange={e => setMinutes(parseInt(e.target.value, 10) || 1)}
+        />
+      </label>
+      <StockChart data={data} average={average} />
+    </div>
+  );
 }
