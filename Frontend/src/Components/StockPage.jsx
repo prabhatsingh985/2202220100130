@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchStocks, fetchStockHistory } from './api';
-import StockChart from '../Components/StockChart';
+import StockChart from './StockChart';
 
 export default function StockPage() {
   const [ticker, setTicker] = useState('NVDA');
