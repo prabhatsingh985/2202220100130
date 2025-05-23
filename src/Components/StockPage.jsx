@@ -12,7 +12,11 @@ export default function StockPage() {
     const getData = async () => {
       try {
         const json = await fetchStockHistory(ticker, minutes);
-        const history = json?.priceHistory ?? (json?.stock ? [json.stock] : []);
+        // Fix: handle case when API returns an array directly
+        const history = Array.isArray(json) 
+          ? json 
+          : json?.priceHistory ?? (json?.stock ? [json.stock] : []);
+          
         const prices = history.map(p => p?.price).filter(price => typeof price === 'number');
 
         setData(history);
