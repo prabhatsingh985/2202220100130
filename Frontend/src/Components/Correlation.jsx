@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { fetchStockHistory } from './api';
 
 function correlation(x, y) {
   const meanX = x.reduce((a, b) => a + b, 0) / x.length;
@@ -9,30 +8,51 @@ function correlation(x, y) {
     x.reduce((sum, xi) => sum + (xi - meanX) ** 2, 0) *
     y.reduce((sum, yi) => sum + (yi - meanY) ** 2, 0)
   );
-  return (numerator / denominator).toFixed(4);
+  return denominator !== 0 ? (numerator / denominator).toFixed(4) : 'N/A';
 }
 
 export default function CorrelationPage() {
-  const [tickers] = useState(['NVDA', 'PYPL', 'AAPL']);
   const [matrix, setMatrix] = useState([]);
-  const minutes = 50;
+  const tickers = ['Stock 1', 'Stock 2', 'Stock 3'];
+
+  // Static price data
+  const data1 = [
+    { price: 95.53192 }, { price: 698.0434 }, { price: 623.58716 },
+    { price: 626.07544 }, { price: 857.7693 }
+  ];
+  const data2 = [
+    { price: 165.07721 }, { price: 732.75507 }, { price: 624.6393 },
+    { price: 0.23993772 }, { price: 869.61566 }
+  ];
+  const data3 = [
+    { price: 500.53992 }, { price: 826.6228 },
+    { price: 237.6364 }, { price: 605.842 }
+  ];
 
   useEffect(() => {
-    Promise.all(tickers.map(t => fetchStockHistory(t, minutes)))
-      .then(results => {
-        const prices = results.map(r => r.priceHistory.map(p => p.price));
-        const corrs = tickers.map((_, i) =>
-          tickers.map((_, j) => correlation(prices[i], prices[j]))
-        );
-        setMatrix(corrs);
-      });
-  }, [tickers]);
+    const prices1 = data1.map(p => p.price);
+    const prices2 = data2.map(p => p.price);
+    const prices3 = data3.map(p => p.price);
 
-  // Inline styles
+    const minLen = Math.min(prices1.length, prices2.length, prices3.length);
+
+    const p1 = prices1.slice(0, minLen);
+    const p2 = prices2.slice(0, minLen);
+    const p3 = prices3.slice(0, minLen);
+
+    const prices = [p1, p2, p3];
+
+    const corrs = prices.map((x, i) =>
+      prices.map((y, j) => correlation(x, y))
+    );
+
+    setMatrix(corrs);
+  }, []);
+
   const styles = {
     container: {
       fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-      maxWidth: '500px',
+      maxWidth: '600px',
       margin: '2rem auto',
       padding: '20px',
       backgroundColor: '#f0f8ff',
