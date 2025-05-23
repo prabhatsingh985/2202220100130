@@ -22,12 +22,17 @@ export default function CorrelationPage() {
         const symbols = Object.values(json);
         setStocks(symbols);
         const pairs = symbols.flatMap((a) => symbols.map((b) => [a, b]));
-
+        const token = "";
         Promise.all(
           pairs.map(([a, b]) =>
             fetch(
-              `http://20.244.56.144/evaluation-service/stockcorrelation?minutes=${minutes}&ticker=${a}&ticker=${b}`
-            )
+                `http://20.244.56.144/evaluation-service/stockcorrelation?minutes=${minutes}&ticker=${a}&ticker=${b}`,
+                {
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                  },
+                }
+              )
               .then((res) => res.json())
               .then((json) => ({ a, b, value: json.correlation }))
           )
